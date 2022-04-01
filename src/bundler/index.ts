@@ -29,7 +29,7 @@ const bundler = async (rawCode: string) => {
       code: result.outputFiles[0].text,
       error: '',
     };
-  } catch (error: any) {
+  } catch (error) {
     return {
       code: '',
       error: error.message,
