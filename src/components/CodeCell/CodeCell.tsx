@@ -1,35 +1,36 @@
 import React, { useEffect, useRef } from 'react';
-import CodeEditor from '../CodeEditor';
-import Preview from '../Preview';
-import Resizable from '../Resizable';
+import { CodeEditor } from '../CodeEditor';
+import { Preview } from '../Preview';
+import { Resizable } from '../Resizable';
 import { Loading } from '../Loading';
-import { useActions, useTypedSelector } from '../../hooks';
+import { StyledPreviewContainer } from './CodeCell.style';
+import { useActions, useTypedSelector, useCumulativeCode } from '../../hooks';
 import { Cell } from '../../state';
-import './index.css';
 
 interface CodeCellProps {
   cell: Cell;
 }
 
-const CodeCell: React.FC<CodeCellProps> = ({ cell }) => {
+export const CodeCell: React.FC<CodeCellProps> = ({ cell }) => {
   const { updateCell, createBundle } = useActions();
   const bundle = useTypedSelector((state) => state.bundles[cell.id]);
+  const cumulativeCode = useCumulativeCode(cell.id);
 
   const firstRender = useRef(true);
 
   useEffect(() => {
     if (firstRender.current) {
-      createBundle(cell.id, cell.content);
+      createBundle(cell.id, cumulativeCode);
       firstRender.current = false;
       return;
     }
 
     const timer = setTimeout(() => {
-      createBundle(cell.id, cell.content);
+      createBundle(cell.id, cumulativeCode);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [cell, createBundle]);
+  }, [cell.id, cumulativeCode, createBundle]);
 
   const handleUpdateCell = (value: string | undefined) => {
     updateCell(cell.id, value || '');
@@ -46,13 +47,11 @@ const CodeCell: React.FC<CodeCellProps> = ({ cell }) => {
             onFormat={handleUpdateCell}
           />
         </Resizable>
-        <div className='preview-container'>
+        <StyledPreviewContainer>
           <Preview code={bundle?.code} err={bundle?.error} />
           {!bundle || (bundle.loading && <Loading />)}
-        </div>
+        </StyledPreviewContainer>
       </div>
     </Resizable>
   );
 };
-
-export default CodeCell;
